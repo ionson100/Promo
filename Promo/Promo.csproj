@@ -103,6 +103,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\imagepromo\725.gif" />
+    <Content Include="Content\imagepromo\725.png" />
+    <Content Include="Content\imagepromo\Next.png" />
+    <Content Include="Content\imagepromo\page1.jpg" />
+    <Content Include="Content\imagepromo\Previous.png" />
+    <Content Include="Content\imagepromo\query.jpg" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_glass_55_fbf9ee_1x400.png" />
@@ -157,7 +163,54 @@
     <Content Include="Content\themes\base\minified\jquery.ui.slider.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
+    <Content Include="Edition\scripts\shAutoloader.js" />
+    <Content Include="Edition\scripts\shBrushAppleScript.js" />
+    <Content Include="Edition\scripts\shBrushAS3.js" />
+    <Content Include="Edition\scripts\shBrushBash.js" />
+    <Content Include="Edition\scripts\shBrushColdFusion.js" />
+    <Content Include="Edition\scripts\shBrushCpp.js" />
+    <Content Include="Edition\scripts\shBrushCSharp.js" />
+    <Content Include="Edition\scripts\shBrushCss.js" />
+    <Content Include="Edition\scripts\shBrushDelphi.js" />
+    <Content Include="Edition\scripts\shBrushDiff.js" />
+    <Content Include="Edition\scripts\shBrushErlang.js" />
+    <Content Include="Edition\scripts\shBrushGroovy.js" />
+    <Content Include="Edition\scripts\shBrushJava.js" />
+    <Content Include="Edition\scripts\shBrushJavaFX.js" />
+    <Content Include="Edition\scripts\shBrushJScript.js" />
+    <Content Include="Edition\scripts\shBrushPerl.js" />
+    <Content Include="Edition\scripts\shBrushPhp.js" />
+    <Content Include="Edition\scripts\shBrushPlain.js" />
+    <Content Include="Edition\scripts\shBrushPowerShell.js" />
+    <Content Include="Edition\scripts\shBrushPython.js" />
+    <Content Include="Edition\scripts\shBrushRuby.js" />
+    <Content Include="Edition\scripts\shBrushSass.js" />
+    <Content Include="Edition\scripts\shBrushScala.js" />
+    <Content Include="Edition\scripts\shBrushSql.js" />
+    <Content Include="Edition\scripts\shBrushVb.js" />
+    <Content Include="Edition\scripts\shBrushXml.js" />
+    <Content Include="Edition\scripts\shCore.js" />
+    <Content Include="Edition\scripts\shLegacy.js" />
+    <Content Include="Edition\styles\shCore.css" />
+    <Content Include="Edition\styles\shCoreDefault.css" />
+    <Content Include="Edition\styles\shCoreDjango.css" />
+    <Content Include="Edition\styles\shCoreEclipse.css" />
+    <Content Include="Edition\styles\shCoreEmacs.css" />
+    <Content Include="Edition\styles\shCoreFadeToGrey.css" />
+    <Content Include="Edition\styles\shCoreMDUltra.css" />
+    <Content Include="Edition\styles\shCoreMidnight.css" />
+    <Content Include="Edition\styles\shCoreRDark.css" />
+    <Content Include="Edition\styles\shThemeDefault.css" />
+    <Content Include="Edition\styles\shThemeDjango.css" />
+    <Content Include="Edition\styles\shThemeEclipse.css" />
+    <Content Include="Edition\styles\shThemeEmacs.css" />
+    <Content Include="Edition\styles\shThemeFadeToGrey.css" />
+    <Content Include="Edition\styles\shThemeMDUltra.css" />
+    <Content Include="Edition\styles\shThemeMidnight.css" />
+    <Content Include="Edition\styles\shThemeRDark.css" />
     <Content Include="Global.asax" />
+    <Content Include="Scripts\PromeController.js" />
+    <Content Include="Scripts\Promo.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -174,7 +227,6 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Web.config" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>
