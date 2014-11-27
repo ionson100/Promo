@@ -1,6 +1,4 @@
-﻿
-
-(function ($) {
+﻿(function ($) {
     ////////////////////////////////////////////////////////// атрибуты
     var messagerequired = "Required value!";
     var messagerange = "{0} must be between {1} and {2}";
@@ -226,163 +224,67 @@
 
                 ajaxPromoHtml: function (obj, url, success, usingcontent, beforeSend) {
 
+                   // alert(url);
                     var innerData = obj;//JSON.stringify(obj);
+                    if (!ajaxsettingCache.exist(url)) {
+                        ajaxsettingCache.set(url);
+                    }
+
                     var aj = ajaxsettingCache.get(url);
 
-                    var dataS = aj.data;
-                    var type = aj.type;
-                    var contentType = aj.contentType;
-                    var complete = aj.complete;
-                    var successS = aj.success;
-                    var async = aj.async;
-                    var dataFilter = aj.dataFilter;
-                    var cache = aj.cache;
-                    var timeout = aj.timeout;
-                    var beforeSendS = aj.beforeSend;
-                    var error = aj.error;
-                    var dataType = aj.dataType;
-                    var crossDomain = aj.crossDomain;
 
-                    if (dataS != null && $.isFunction(dataS)) {
-                        innerData = dataS();
+
+
+                    if (aj.data != null && $.isFunction(javaEnabled.data)) {
+                        innerData = aj.data();
                     }
 
                     ///////////////////////////////////////////////// ///////////
 
                     $.ajax({
                         url: url,
-                        type: type,
+                        type: aj.type,
                         data: innerData,
-                        dataType: dataType,
-                        cache: cache,
-                        async: async,
-                        dataFilter: dataFilter,
-                        timeout: timeout,
-                        crossDomain: crossDomain,
-                        contentType: contentType,
+                        dataType: aj.dataType,
+                        cache: aj.cache,
+                        async: aj.async,
+                        dataFilter: aj.dataFilter,
+                        timeout: aj.timeout,
+                        crossDomain: aj.crossDomain,
+                        contentType: aj.contentType,
                         success: function (data, a) {
-                            if (successS != null) {
-                                successS(data, a);
+                            if (aj.success != null) {
+                                aj.success(data, a);
                             } else {
                                 success(data);
                             }
                         },
                         beforeSend: function () {
-                            if (beforeSendS != null) {
-                                return beforeSendS();
+                            if (aj.beforeSend != null) {
+                                return aj.beforeSend();
                             } else {
                                 return beforeSend();
                             }
                         },
                         complete: function (xmlHttpRequest, textStatus) {
-                            if (complete != null) {
-                                complete(xmlHttpRequest, textStatus);
+                          //  alert(aj.complete);
+                            if (aj.complete != null) {
+                                aj.complete(xmlHttpRequest, textStatus);
                             }
 
                         },
                         error: function (jqXhr, a, b) {
-                            if (error == null) {
+                            if (aj.error == null) {
                                 if (jqXhr.status == 500) {
                                     alert('Internal error: ' + jqXhr.responseText);
                                 } else {
                                     alert('Unexpected error.' + jqXhr.responseText);
                                 }
                             } else {
-                                error(jqXhr, a, b);
+                                aj.error(jqXhr, a, b);
                             }
                         }
                     });
-                },
-
-                promoRemote: function (url, parentElement, listElementsender) {
-
-                    var r = [];
-                    if (listElementsender != null) {
-                        r = listElementsender.split(',');
-                    }
-                    r.push(parentElement);
-                    var data = innerFun.getJsonJs(r, null);//JSON.stringify(innerFun.getJsonJs(r, null));
-
-                    var type = options.ajaxoptions.type;
-                    var async = options.ajaxoptions.async;
-                    var cache = options.ajaxoptions.cache;
-                    var dataType = options.ajaxoptions.dataType;
-                    var contentType = options.ajaxoptions.contentType;
-                    var dataFilter = options.ajaxoptions.dataFilter;
-                    var timeout = options.ajaxoptions.timeout;
-                    var beforeSend = options.ajaxoptions.beforeSend;
-                    var success = options.ajaxoptions.success;
-                    var error = options.ajaxoptions.error;
-                    var complete = options.ajaxoptions.complete;
-                    var crossDomain = options.ajaxoptions.crossDomain;
-
-                    if (ajaxsettingCache.exist(url)) {
-                        var set = ajaxsettingCache.get(url);
-                        if (set.data != null) {
-                            data = set.data();
-                        }
-                        if (set.crossDomain != null) crossDomain = set.crossDomain;
-                        if (set.type != null) type = set.type;
-                        if (set.async != null) async = set.async;
-                        if (set.cache != null) cache = set.cache;
-                        if (set.dataType != null) dataType = set.dataType;
-                        if (set.contentType != null) contentType = set.contentType;
-                        if (set.dataFilter != null) dataFilter = set.dataFilter;
-                        if (set.timeout != null) timeout = set.timeout;
-                        if (set.beforeSend != null) beforeSend = set.beforeSend;
-                        if (set.success != null) success = set.success;
-                        if (set.error != null) error = set.error;
-                        if (set.complete != null) complete = set.complete;
-
-                    }
-
-                    $.ajax({
-                        url: url,
-                        type: type,
-                        async: async,
-                        cache: cache,
-                        data: data,
-                        dataFilter: dataFilter,
-                        dataType: dataType,
-                        contentType: contentType,
-                        timeout: timeout,
-                        crossDomain: crossDomain,
-                        complete: function () {
-                            if (complete != null) complete();
-                        },
-                        beforeSend: function (xhr) {
-                            if (beforeSend != null) {
-                                beforeSend(xhr);
-                            } else {
-                                $('[data-remove-res-name=' + parentElement + ']').remove();
-                            }
-                            innerFun.beforeSend(url, null, false);
-                        },
-                        success: function (dat, s) {
-                            if (success != null) {
-                                success(data, s);
-                            } else {
-                                if (!isStringEmpty(dat)) {
-
-                                    $(promo.element).find('[name=' + parentElement + ']').
-                                        after("<div class='field-validation-error' data-remove-res-name='" + parentElement + "' >" + dat + " </div>");
-                                }
-                            }
-                            innerFun.commit(url, dat, false);
-                        },
-                        error: function (jqXhr, a, b) {
-                            if (error == null) {
-                                if (jqXhr.status == 500) {
-                                    alert('Internal error: ' + jqXhr.responseText);
-                                } else {
-                                    alert('Unexpected error.' + jqXhr.responseText);
-                                }
-                            } else {
-                                options.eventerror(jqXhr, a, b);
-                            }
-                        }
-                    });
-
                 },
 
                 promoPurpose: function (ajax) {
@@ -564,78 +466,6 @@
                     return objs;
                 },
 
-                jsonModelGet: function (url, success) {
-
-                    var aj = ajaxsettingCache.get(url);
-                    var dataS = aj.data;
-                    var type = aj.type;
-                    var contentType = aj.contentType;
-                    var complete = aj.complete;
-                    var successS = aj.success;
-                    var async = aj.async;
-                    var dataFilter = aj.dataFilter;
-                    var cache = aj.cache;
-                    var timeout = aj.timeout;
-                    var beforeSendS = aj.beforeSend;
-                    var error = aj.error;
-                    var dataType = aj.dataType;
-                    var crossDomain = aj.crossDomain;
-
-                    $.ajax({
-                        url: url,
-                        type: type,
-                        data: function () {
-                            if (dataS != null && $.isFunction(dataS)) {
-                                return dataS();
-                            } else {
-                                return '';
-                            }
-                        },
-                        cache: cache,
-                        contentType: contentType,
-                        async: async,
-                        dataFilter: dataFilter,
-                        crossDomain: crossDomain,
-                        timeout: timeout,
-                        dataType: dataType,
-
-                        beforeSend: function () {
-                            if (beforeSendS != null) {
-                                return beforeSendS();
-                            }
-                            innerFun.beforeSend(url, null, false);
-                            return true;
-                        },
-                        complete: function (xmlHttpRequest, textStatus) {
-                            if (complete != null) {
-                                complete(xmlHttpRequest, textStatus);
-                            }
-                            contexCache.setContext(currentUrl, JSON.stringify(innerFun.getJsonJs(null, null)));
-                        },
-                        success: function (data, s) {
-
-                            if (successS != null) {
-                                successS(data);
-                            } else {
-                                success(data, s);
-                                modelPromo.set(url, data);
-                                innerFun.commit(url, data, false);
-                            }
-                        },
-                        error: function (jqXhr, a, b) {
-                            if (error == null) {
-                                if (jqXhr.status == 500) {
-                                    alert('Internal error: ' + jqXhr.responseText);
-                                } else {
-                                    alert('Unexpected error.' + jqXhr.responseText);
-                                }
-                            } else {
-                                error(jqXhr, a, b);
-                            }
-                        }
-                    });
-                },
-
                 beforeSend: function (url, json, iscache) {
                     if (options.eventbeforesend != true) {
                         options.eventbeforesend(url, json, iscache);
@@ -657,7 +487,9 @@
 
                 queryaction: function (urlquery) {
                     var curo = innerFun.getJsonJs(null, options.filterattribute);
-                    innerFun.ajaxPromoHtml(curo, urlquery,
+                    var url = $(urlquery).attr('data-query-auto');
+                
+                    innerFun.ajaxPromoHtml(curo, url,
                        function (data) {
                            $('[data-query]').empty().append(data);
                            contexCache.set(currentUrl, promo.element.html());
@@ -666,7 +498,7 @@
                        }
                         , true,
                         function () {
-                            innerFun.beforeSend(urlquery, null, false);
+                            innerFun.beforeSend(url, null, false);
                             return true;
                         });
                 },
@@ -758,7 +590,28 @@
                                 }
                                 res.keyup(function () {
 
-                                    innerFun.promoRemote(this.getAttribute(dataValRemoteUrl), this.getAttribute('name'), this.getAttribute(dataValRemoteElements));
+                                    var r = [];
+                                    if (this.getAttribute(dataValRemoteElements) != null) {
+                                        r = this.getAttribute(dataValRemoteElements).split(',');
+                                    }
+                                    r.push(this.getAttribute('name'));
+
+                                    var data = innerFun.getJsonJs(r, null);
+
+                                    var nameparent = this.getAttribute('name');
+                                    var urlremote = this.getAttribute(dataValRemoteUrl);
+                                    //obj, url, success, usingcontent, beforeSend
+                                    innerFun.ajaxPromoHtml(data, urlremote, function (dat) {
+                                        if (!isStringEmpty(dat)) {
+
+                                            $(promo.element).find('[name=' + nameparent + ']').
+                                                after("<div class='field-validation-error' data-remove-res-name='" + nameparent + "' >" + dat + " </div>");
+                                        }
+                                        innerFun.commit(urlremote, dat, false);
+                                    }, false, function () {
+                                        $('[data-remove-res-name=' + nameparent + ']').remove();
+                                        innerFun.beforeSend(urlremote, null, false);
+                                    });
                                 });
                             }
                         }
@@ -971,18 +824,17 @@
                     var rr = $(promo.element).find('[data-query-auto]');
                     $.each(rr, function () {
                         var e = $(this);
-                        var url = $(this).attr('data-query-auto');
-                        ajaxsettingCache.set(url);
+                     
                         if (e.is('input:radio') || e.is('input:checkbox') || e.is('select')) {
-                           e.change(function () {
-                                innerFun.queryaction(url);
+                            e.change(function () {
+                                innerFun.queryaction(this);
                             });
                         }
                         else
                             if (e.is('div')) {
                             } else {
-                               e.keyup(function () {
-                                    innerFun.queryaction(url);
+                                e.keyup(function () {
+                                    innerFun.queryaction(this);
                                 });
                             }
                     });
@@ -1277,11 +1129,14 @@
                     return;
                 }
 
-                innerFun.jsonModelGet(url, function (a) {
-                    innerFun.promoPurpose(a);
-                    modelPromo.set(url, a);
+                innerFun.ajaxPromoHtml({}, url, function (dat) {
+                    innerFun.promoPurpose(dat);
+                    modelPromo.set(url, dat);
+                    innerFun.commit(url, dat, false);
+                    contexCache.setContext(currentUrl, JSON.stringify(innerFun.getJsonJs(null, null)));
+                }, true, function () {
+                    innerFun.beforeSend(url, null, false);
                 });
-
             };
 
             // перегрузка формы

@@ -74,6 +74,12 @@ var promoAction = {
         res.reload();
     },
     Example2: function () {
+        res.settings.ajax.complete = function () {
+            //data-query-auto="/Example2/QueryUserData/3"
+            var ee = $('[name=Username]');
+         
+            ee.attr('data-query-auto', 'http://ion100.ru/Example2/QueryUserData/3');
+        };
         res.getHtml('http://ion100.ru/Example2/BasePHtml/1');
     },
     Example3: function () {
