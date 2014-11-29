@@ -209,7 +209,7 @@
     <Content Include="Edition\styles\shThemeMidnight.css" />
     <Content Include="Edition\styles\shThemeRDark.css" />
     <Content Include="Global.asax" />
-    <Content Include="Scripts\PromeController.js" />
+    <Content Include="Scripts\PromoController.js" />
     <Content Include="Scripts\Promo.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
