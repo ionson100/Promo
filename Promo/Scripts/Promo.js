@@ -49,7 +49,14 @@
             });
         };
     }
-
+    function clone(obj) {
+        if (obj == null || typeof (obj) != 'object')
+            return obj;
+        var temp = new obj.constructor();
+        for (var key in obj)
+            temp[key] = clone(obj[key]);
+        return temp;
+    }
     $.fn.setCursorPosition = function (pos) {
         this.each(function (index, elem) {
             if (elem.setSelectionRange) {
@@ -224,13 +231,13 @@
 
                 ajaxPromoHtml: function (obj, url, success, usingcontent, beforeSend) {
 
-                   // alert(url);
-                    var innerData = obj;//JSON.stringify(obj);
+                    var innerData = obj;//JSON.stringify(obj); 
+
                     if (!ajaxsettingCache.exist(url)) {
                         ajaxsettingCache.set(url);
                     }
 
-                    var aj = ajaxsettingCache.get(url);
+                    var aj = ajaxsettingCache.get(url).ajax;
 
 
 
@@ -267,7 +274,7 @@
                             }
                         },
                         complete: function (xmlHttpRequest, textStatus) {
-                          //  alert(aj.complete);
+
                             if (aj.complete != null) {
                                 aj.complete(xmlHttpRequest, textStatus);
                             }
@@ -358,6 +365,10 @@
                         }
                     } else {
                         oso.filter('[data-focus]').focus();
+                    }
+
+                    if (ajaxsettingCache.get(currentUrl).lastpurposemodel != null) {
+                        ajaxsettingCache.get(currentUrl).lastpurposemodel();
                     }
                 },
 
@@ -483,12 +494,15 @@
                     $(promo.element).empty().append(data);
                     innerFun.validEvent();
                     innerFun.changeevent();
+
+                    if (ajaxsettingCache.get(currentUrl).lastappender != null) {
+                        ajaxsettingCache.get(currentUrl).lastappender();
+                    }
                 },
 
                 queryaction: function (urlquery) {
                     var curo = innerFun.getJsonJs(null, options.filterattribute);
                     var url = $(urlquery).attr('data-query-auto');
-                
                     innerFun.ajaxPromoHtml(curo, url,
                        function (data) {
                            $('[data-query]').empty().append(data);
@@ -824,7 +838,7 @@
                     var rr = $(promo.element).find('[data-query-auto]');
                     $.each(rr, function () {
                         var e = $(this);
-                     
+
                         if (e.is('input:radio') || e.is('input:checkbox') || e.is('select')) {
                             e.change(function () {
                                 innerFun.queryaction(this);
@@ -951,9 +965,9 @@
                 },
                 set: function (url) {
 
+                   
                     if (!ajaxsettingCache.exist(url)) {
-                        var newObject = $.extend({}, promo.settings.ajax);
-                        ajaxsettingCache.datas[url] = newObject;
+                        ajaxsettingCache.datas[url] = clone(promo.settings);
                     }
                     promo.settings.clear();
 
@@ -997,8 +1011,9 @@
             // получение разметки с задействованием контекста
             promo['getHtml'] = function (url, isbuttons) {
                 if (isbuttons == null) {
-
+                  
                     ajaxsettingCache.set(url);
+
                     validPromo.set(url);
 
                 }
@@ -1084,7 +1099,7 @@
             // получение разметки минуя контекст,  используется для кнопок
             promo['getHtmlNoContex'] = function (url) {
 
-                contexCache.remove(url);
+                //  contexCache.remove(url);
                 var curo = innerFun.getJsonJs(null, options.filterattribute);
                 innerFun.ajaxPromoHtml(curo, url,
                      function (data) {
@@ -1151,7 +1166,8 @@
 
             //настройки запроса ( кроме автозапроса)
             promo['settings'] = {
-                query: false,
+                lastpurposemodel: null,
+                lastappender: null,
                 ajax: {
                     crossDomain: options.ajaxoptions.crossDomain,
                     data: options.ajaxoptions.data,
@@ -1182,7 +1198,9 @@
                     promo.settings.ajax.error = options.ajaxoptions.error;
                     promo.settings.ajax.dataType = options.ajaxoptions.dataType;
 
-                    promo.settings.query = false;
+
+                    promo.settings.lastappender = null;
+                    promo.settings.lastpurposemodel = null;
                 }
             };
 
