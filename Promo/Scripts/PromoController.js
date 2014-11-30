@@ -6,10 +6,10 @@ $(function () {
             dataType: 'text',
             crossDomain: true,
         },
-        eventbeforesend: function (a, b, c) {
+        eventbeforesend: function () {
             $(".loader").show();
         },
-        eventcommit: function (a, b, c) {
+        eventcommit: function () {
             $(".loader").hide();
         },
         buttonprevious: $('#prev'),
@@ -195,38 +195,24 @@ var promoAction = {
     },
     /////////////////////////////////////////////////////////
     Add2: function () {
-        res1.settings.ajax.crossDomain = true;
-        res1.settings.ajax.dataType = "text";
-        res1.settings.lastappender = function () {
-            Pizdaticus2();
-        };
+     
+     
         if (res1.validate())
             res1.action('http://ion100.ru/Example/AddBaseP/12');
     },
 
     Edit2: function () {
-        res1.settings.ajax.crossDomain = true;
-        res1.settings.ajax.dataType = "text";
-        res1.settings.lastappender = function () {
-            Pizdaticus2();
-        };
+      
         if (res1.validate())
             res1.action('http://ion100.ru/Example/EditBaseP/12');
     },
 
     Delete2: function () {
-        res1.settings.ajax.crossDomain = true;
-        res1.settings.ajax.dataType = "text";
-        res1.settings.lastappender = function () {
-            Pizdaticus2();
-        };
+       
         res1.action('http://ion100.ru/Example/DeleteBaseP/12');
     },
     Reload2: function () {
-        //res1.settings.ajax.crossDomain = true;
-        //res1.settings.lastappender = function() {
-        //    Pizdaticus2();
-        //};
+   
         res1.reload();
     },
     Id2: function (ass) {

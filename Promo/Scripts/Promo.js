@@ -266,11 +266,11 @@
                                 success(data);
                             }
                         },
-                        beforeSend: function () {
+                        beforeSend: function (xhr) {
                             if (aj.beforeSend != null) {
-                                return aj.beforeSend();
+                                return aj.beforeSend(xhr);
                             } else {
-                                return beforeSend();
+                                return beforeSend(xhr);
                             }
                         },
                         complete: function (xmlHttpRequest, textStatus) {
