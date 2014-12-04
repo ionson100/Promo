@@ -120,6 +120,9 @@
         'Promo': function (options) {
 
             options = $.extend({
+                timerinterval: 10000,
+                timereventsend: null,
+                timereventsucces: null,
                 filterattribute: null,
                 buttonprevious: null,
                 buttonnext: null,
@@ -210,28 +213,41 @@
                         if (($(this).is('input:radio') || $(this).is('input:checkbox')) && !this.getAttribute('value')) {
                             contexCache.setFocus(currentUrl, { name: this.getAttribute('name') });
                         }
+                        else if (($(this).is('input:radio') || $(this).is('input:checkbox')) && this.getAttribute('value')) {
+                            contexCache.setFocus(currentUrl, { name: this.getAttribute('name'), value: this.getAttribute('value') });
+                        }
                         else
                             if ($(this).is('input') || $(this).is('textarea')) {
                                 contexCache.setFocus(currentUrl, { position: $(this).getCursorPosition(), name: this.getAttribute('name') });
                             }
                             else
-                                if (($(this).is('input:radio') || $(this).is('input:checkbox')) && this.getAttribute('value')) {
-                                    contexCache.setFocus(currentUrl, { name: this.getAttribute('name'), value: this.getAttribute('value') });
-
+                                if ($(this).is('select')) {
+                                    contexCache.setFocus(currentUrl, { name: this.getAttribute('name') });
                                 }
-                                else
-                                    if ($(this).is('select')) {
-                                        contexCache.setFocus(currentUrl, { name: this.getAttribute('name') });
-                                    }
 
 
                     });
 
                 },
 
-                ajaxPromoHtml: function (obj, url, success, usingcontent, beforeSend) {
+                ajaxPromoHtml: function (obj, url, success, usingcontent, beforeSend, isTimer) {
 
-                    var innerData = obj;//JSON.stringify(obj); 
+                    var tt = [];
+
+                    for (var p in obj) {
+
+                        if ($.isArray(obj[p])) {
+                            $.each(obj[p], function () {
+                                tt.push({ name: p, value: this });
+                            });
+
+                        } else {
+                            tt.push({ name: p, value: obj[p] });
+                        }
+
+                    }
+
+                    var innerData = tt;//JSON.stringify(obj); 
 
                     if (!ajaxsettingCache.exist(url)) {
                         ajaxsettingCache.set(url);
@@ -240,14 +256,14 @@
                     var aj = ajaxsettingCache.get(url).ajax;
 
 
+                    if (isTimer !== true) {
+                        if (aj.data != null && $.isFunction(javaEnabled.data)) {
+                            innerData = aj.data();
+                        }
 
-
-                    if (aj.data != null && $.isFunction(javaEnabled.data)) {
-                        innerData = aj.data();
                     }
 
-                    ///////////////////////////////////////////////// ///////////
-
+                    // alert(JSON.stringify(innerData));
                     $.ajax({
                         url: url,
                         type: aj.type,
@@ -259,24 +275,67 @@
                         timeout: aj.timeout,
                         crossDomain: aj.crossDomain,
                         contentType: aj.contentType,
-                        success: function (data, a) {
-                            if (aj.success != null) {
-                                aj.success(data, a);
+                        success: function (data, a, s) {
+
+                            if (isTimer == true) {
+
+                                success(data, a, s);
                             } else {
-                                success(data);
+                                if (aj.success != null) {
+                                    aj.success(data, a);
+                                } else {
+                                    success(data);
+                                }
                             }
+
+                            ajaxsettingCache.get(url).timer.timermarker = new Date().getTime();
+
                         },
-                        beforeSend: function (xhr) {
-                            if (aj.beforeSend != null) {
-                                return aj.beforeSend(xhr);
-                            } else {
-                                return beforeSend(xhr);
+                        beforeSend: function () {
+                            if (isTimer != true) {
+                                if (aj.beforeSend != null) {
+                                    return aj.beforeSend();
+                                } else {
+                                    return beforeSend();
+                                }
                             }
+                            return true;
                         },
                         complete: function (xmlHttpRequest, textStatus) {
+                            if (isTimer != true) {
+                                if (aj.complete != null) {
+                                    aj.complete(xmlHttpRequest, textStatus);
+                                }
+                                var timer = ajaxsettingCache.get(url).timer;
+                                if (timer.timerstart == true) { //start timer
 
-                            if (aj.complete != null) {
-                                aj.complete(xmlHttpRequest, textStatus);
+                                    timer.timerstart = null;
+                                    timer.timerurl = currentUrl;
+                                    timer.timerid = window.setInterval(function () {
+
+                                        var ob;
+                                        if (timer.timereventsend == null) {
+                                            ob = { time: timer.timermarker };
+                                        } else {
+                                            ob = timereventsend();
+                                        }
+                                        //obj, url, success, usingcontent, beforeSend, isTimer
+
+                                        innerFun.ajaxPromoHtml(ob, timer.timerurl, function (data, a, s) {
+
+                                            if (timer.timereventsucces != null) {
+                                                timer.timereventsucces(data, a, s);
+                                            } else {
+                                                if (currentUrl != timer.timerurl) {
+                                                    modelPromo.clear(timer.timerurl);
+                                                    contexCache.remove(timer.timerurl);
+                                                }
+                                            }
+                                        }, false, null, true);
+
+                                    }, timer.timerinterval);
+
+                                }
                             }
 
                         },
@@ -305,41 +364,63 @@
                     $.each(el, function () {
                         var ion = $(this);
                         var name = this.getAttribute('name');
-                        if (ion.is('input:checkbox') && !this.getAttribute('value')) {
-                            if (objs[name] == true) {
-                                ion.attr('checked', 'checked');
+
+                        if (ion.is('input:checkbox')) {
+                            if (!this.getAttribute('value')) {
+                                if (objs[name] == true) {
+                                    ion.attr('checked', 'checked');
+                                } else {
+                                    ion.removeAttr('checked');;
+                                }
+
                             } else {
-                                ion.removeAttr('checked');;
-                            }
-                        }
-                        else
-                            if (((ion.is('input:checkbox') && this.getAttribute('value')) || ion.is('input:radio') && this.getAttribute('value')) && Array.isArray(objs[name])) {
-                                if (objs[name].contains(this.getAttribute('value'))) {
+
+                                if (objs[name] === true) {
+                                    ion.attr('value', 'true');
                                     ion.prop('checked', true);
+                                    delete objs[name];
                                 }
-                                else {
+                                if (objs[name] === false) {
+                                    ion.attr('value', 'false');
                                     ion.prop('checked', false);
+                                    delete objs[name];
+                                }
+                                if ($.isArray(objs[name])) {
+                                    if (objs[name].contains(this.getAttribute('value'))) {
+                                        ion.prop('checked', true);
+                                    } else {
+                                        ion.prop('checked', false);
+                                    }
                                 }
                             }
-                            else
-                                if (ion.is('select') && objs[name]) {
+                            return;
 
-                                    ion.val(objs[name]);
-                                }
-                                else
-                                    if (ion.is('div') && ion.attr('data-name') && objs[this.getAttribute('data-name')]) {
+                        }
+                        if (ion.is('input:radio')) {
+                            if (ion.val() == objs[name]) {
+                                $(ion).prop('checked', true);
+                            } else {
+                                $(ion).prop('checked', false);
+                            }
+                            return;
+                        }
+                        if (ion.is('div') && ion.attr('data-name') && objs[this.getAttribute('data-name')]) {
 
-                                        ion.empty().append(objs[this.getAttribute('data-name')]);
-                                    }
-                                    else
-                                        if (ion.is('img') && ion.attr('data-name') && objs[this.getAttribute('data-name')]) {
-                                            ion.attr('src', objs[this.getAttribute('data-name')]);
-                                        }
-                                        else
-                                            if ((ion.is('input') || ion.is('textarea')) && objs[name]) {
-                                                this.value = objs[name];
+                            ion.empty().append(objs[this.getAttribute('data-name')]);
+                            return;
+                        }
+                        if (ion.is('img') && ion.attr('data-name') && objs[this.getAttribute('data-name')]) {
+                            ion.attr('src', objs[this.getAttribute('data-name')]);
+                            return;
+                        }
+                        if (objs[name]) {
+                            this.value = objs[name];
+                            return;
+                        }
 
-                                            }
+
+
+
                     });
 
                     var oso = $(promo.element).find('input  ,select,textarea');//фокус установка
@@ -409,71 +490,104 @@
                     }
                     $.each(to, function () {
                         var i;
+                        var ion = $(this);
                         var name = this.getAttribute('name');
                         if (elements != null) {
                             if (elements.indexOf(name) == -1)
                                 return;
                         }
 
-                        if ($(this).is('input:radio') && this.checked == true) {
-                            objs[name] = this.value;
-                        } else
-                            if ($(this).is('select') && this.multiple == false) {
-                                objs[name] = this.value;
-                            }
-                            else
-                                if ($(this).is('select') && this.multiple == true) {
+                        if (ion.is('input:radio') && ion.is(':checked')) {
 
-                                    var arr = [];
-                                    if ($.browser == "msie") {
-                                        for (i = 0; i < this.all.length; i++) {
-                                            if (this.all.item(i).selected == true) {
-                                                arr.push(this.all.item(i).value);
-                                            }
-                                        }
-                                        objs[name] = arr;
-                                    } else {
-                                        objs[name] = $(this).val();
+                            objs[name] = this.value;
+                            return;
+                        }
+                        if (ion.is('select') && this.multiple == false) {
+                            objs[name] = this.value;
+                            return;
+                        }
+
+                        if (ion.is('select') && this.multiple == true) {
+
+                            var arr = [];
+                            if ($.browser == "msie") {
+                                for (i = 0; i < this.all.length; i++) {
+                                    if (this.all.item(i).selected == true) {
+                                        arr.push(this.all.item(i).value);
                                     }
                                 }
-                                else
-                                    if ($(this).is('input:checkbox') && !$(this).attr('value')) {
+                                objs[name] = arr;
+                            } else {
+                                objs[name] = $(this).val();
+                            }
+                            return;
+                        }
 
-                                        objs[name] = this.checked;
+                        if (ion.is('input:checkbox') && !ion.attr('value')) {
+
+                            objs[name] = this.checked;
+                            return;
+                        }
+
+                        if (ion.is('div') && this.getAttribute('data-name')) {
+                            objs[this.getAttribute('data-name')] = ion.html();
+                            return;
+                        }
+
+                        if (ion.is('img') && this.getAttribute('data-name')) {
+                            objs[this.getAttribute('data-name')] = ion.attr('src');
+                            return;
+                        }
+
+                        if (ion.is('input:checkbox') && ion.attr('value')) {
+
+                            if ((ion.attr('value') == 'true' || ion.attr('value') == 'false')) {
+                                objs[name] = ion.is(':checked');
+                                return;
+                            }
+
+                            arr = [];
+
+                            if ($.browser == "msie") {
+                                for (i = 0; i < this.all.length; i++) {
+                                    if (this.all.item(i).selected == true) {
+                                        arr.push(this.all.item(i).value);
                                     }
-                                    else
-                                        if ($(this).is('div') && this.getAttribute('data-name')) {
-                                            objs[this.getAttribute('data-name')] = $(this).html();
-                                        }
-                                        else
-                                            if ($(this).is('img') && this.getAttribute('data-name')) {
-                                                objs[this.getAttribute('data-name')] = $(this).attr('src');
-                                            }
-                                            else
-                                                if ($(this).is('input:checkbox') && $(this).attr('value')) {
-                                                    arr = [];
+                                }
+                            } else {
+                                if (ion.prop("checked")) {
+                                    if (objs[name] == null) {
+                                        objs[name] = [];
+                                    }
 
-                                                    if ($.browser == "msie") {
-                                                        for (i = 0; i < this.all.length; i++) {
-                                                            if (this.all.item(i).selected == true) {
-                                                                arr.push(this.all.item(i).value);
-                                                            }
-                                                        }
-                                                    } else {
-                                                        if ($(this).prop("checked")) {
-                                                            if (objs[name] == null) {
-                                                                objs[name] = [];
-                                                            }
+                                    objs[name].push(ion.attr('value'));
+                                }
+                            }
 
-                                                            objs[name].push($(this).attr('value'));
-                                                        }
-                                                    }
-                                                }
-                                                else
-                                                    objs[name] = this.value;
+                            return;
+                        }
+
+
+                        if (ion.is('input:hidden') && objs[name]) {
+                            return;
+                        }
+
+                        if (ion.is('div') ||
+                            ion.is('img') ||
+                            ion.is('input:button') ||
+                            ion.is('button') ||
+                            ion.is('input:submit') ||
+                            ion.is('input:reset') ||
+                            ion.is('input:radio') ||
+                            ion.is('input:checkbox')) {
+                            return;
+                        }
+
+                        objs[name] = this.value;
                     }
                     );
 
+                    // alert(JSON.stringify(objs));
                     return objs;
                 },
 
@@ -965,7 +1079,7 @@
                 },
                 set: function (url) {
 
-                   
+
                     if (!ajaxsettingCache.exist(url)) {
                         ajaxsettingCache.datas[url] = clone(promo.settings);
                     }
@@ -1011,7 +1125,7 @@
             // получение разметки с задействованием контекста
             promo['getHtml'] = function (url, isbuttons) {
                 if (isbuttons == null) {
-                  
+
                     ajaxsettingCache.set(url);
 
                     validPromo.set(url);
@@ -1168,6 +1282,41 @@
             promo['settings'] = {
                 lastpurposemodel: null,
                 lastappender: null,
+                timer: {
+                    timermarker: null,
+                    timerstart: null,
+                    timerurl: null,
+                    timerinterval: options.timerinterval,
+                    timerevantsend: options.timerevantsend,
+                    timereventsucces: options.timereventsucces,
+                    timerid: null,
+                    start: function (timerurl, timerinterval, timereventsucces, timereventsend) {
+
+                        if (timerurl != null) {
+                            promo.settings.timer.timerurl = timerurl;
+                        }
+
+                        if (timerinterval != null) {
+                            promo.settings.timer.timerinterval = timerinterval;
+                        }
+                        if (timereventsend != null) {
+                            promo.settings.timer.timereventsend = timereventsend;
+                        }
+                        if (timereventsucces != null) {
+                            promo.settings.timer.timereventsucces = timereventsucces;
+                        }
+                        promo.settings.timer.timerstart = true;
+
+                    },
+                    stop: function () {
+                        if (promo.settings.timer.timerid != null) {
+                            window.clearInterval(promo.settings.timer.timerid);
+                            promo.settings.timer.timerid = null;
+                        }
+
+
+                    }
+                },
                 ajax: {
                     crossDomain: options.ajaxoptions.crossDomain,
                     data: options.ajaxoptions.data,
@@ -1197,7 +1346,35 @@
                     promo.settings.ajax.beforeSend = options.ajaxoptions.beforeSend;
                     promo.settings.ajax.error = options.ajaxoptions.error;
                     promo.settings.ajax.dataType = options.ajaxoptions.dataType;
+                    promo.settings.timer = {
+                        timermarker: null,
+                        timerstart: null,
+                        timerurl: null,
+                        timerinterval: options.timerinterval,
+                        timerevantsend: options.timerevantsend,
+                        timereventsucces: options.timereventsucces,
+                        timerid: null,
+                        start: function (timerurl, timerinterval, timereventsucces, timereventsend) {
 
+                            if (timerurl != null) {
+                                promo.settings.timer.timerurl = timerurl;
+                            }
+
+                            if (timerinterval != null) {
+                                promo.settings.timer.timerinterval = timerinterval;
+                            }
+                            if (timereventsend != null) {
+                                promo.settings.timer.timereventsend = timereventsend;
+                            }
+                            if (timereventsucces != null) {
+                                promo.settings.timer.timereventsucces = timereventsucces;
+                            }
+                            promo.settings.timer.timerstart = true;
+
+                        },
+
+
+                    },
 
                     promo.settings.lastappender = null;
                     promo.settings.lastpurposemodel = null;
